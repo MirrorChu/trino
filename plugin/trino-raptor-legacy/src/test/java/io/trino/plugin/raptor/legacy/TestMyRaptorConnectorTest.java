@@ -60,7 +60,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 
-public class TestRaptorConnectorTest
+public class TestMyRaptorConnectorTest
         extends BaseConnectorTest
 {
     @Override
@@ -797,12 +797,6 @@ public class TestRaptorConnectorTest
     protected TestTable createTableWithDefaultColumns()
     {
         throw new SkipException("Raptor connector does not support column default values");
-    }
-
-    @Override
-    public void testCreateSchema()
-    {
-        throw new SkipException("Raptor connector does not support creating schemas");
     }
 
     @Override

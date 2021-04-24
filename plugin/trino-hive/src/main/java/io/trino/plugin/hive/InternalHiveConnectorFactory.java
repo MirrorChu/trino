@@ -142,7 +142,7 @@ public final class InternalHiveConnectorFactory
                     .map(listener -> new ClassLoaderSafeEventListener(listener, classLoader))
                     .collect(toImmutableSet());
 
-            return new HiveConnector(
+            return new MyHiveConnector(
                     lifeCycleManager,
                     metadataFactory,
                     transactionManager,

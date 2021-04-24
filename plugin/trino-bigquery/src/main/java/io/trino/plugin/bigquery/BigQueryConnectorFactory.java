@@ -61,6 +61,6 @@ public class BigQueryConnectorFactory
                 .setRequiredConfigurationProperties(config)
                 .initialize();
 
-        return injector.getInstance(BigQueryConnector.class);
+        return injector.getInstance(MyBigQueryConnector.class);
     }
 }

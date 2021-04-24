@@ -101,7 +101,7 @@ public final class InternalIcebergConnectorFactory
             IcebergTableProperties icebergTableProperties = injector.getInstance(IcebergTableProperties.class);
             Set<Procedure> procedures = injector.getInstance((Key<Set<Procedure>>) Key.get(Types.setOf(Procedure.class)));
 
-            return new IcebergConnector(
+            return new MyIcebergConnector(
                     lifeCycleManager,
                     transactionManager,
                     metadataFactory,

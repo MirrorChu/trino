@@ -22,7 +22,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class TestIcebergConnectorFactory
+public class TestMyIcebergConnectorFactory
 {
     @Test
     public void testBasicConfig()

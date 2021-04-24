@@ -57,7 +57,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class MyRaptorConnector
         implements Connector
 {
-    private static final Logger log = Logger.get(RaptorConnector.class);
+    private static final Logger log = Logger.get(MyRaptorConnector.class);
 
     private final LifeCycleManager lifeCycleManager;
     private final RaptorMetadataFactory metadataFactory;

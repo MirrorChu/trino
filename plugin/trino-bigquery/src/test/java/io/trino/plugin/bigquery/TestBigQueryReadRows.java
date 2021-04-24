@@ -29,7 +29,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-public class TestReadRowsHelper
+public class TestBigQueryReadRows
 {
     @Test
     void testNoFailures()
@@ -43,7 +43,7 @@ public class TestReadRowsHelper
 
         // so we can run multiple tests
         List<ReadRowsResponse> responses = ImmutableList.copyOf(
-                new MockReadRowsHelper(client, request, 3, ImmutableList.of(batch1))
+                new MockBigQueryReadRows(client, request, 3, ImmutableList.of(batch1))
                         .readRows());
 
         assertThat(responses.size()).isEqualTo(2);
@@ -64,7 +64,7 @@ public class TestReadRowsHelper
         batch2.addResponse(ReadRowsResponse.newBuilder().setRowCount(11).build());
 
         List<ReadRowsResponse> responses = ImmutableList.copyOf(
-                new MockReadRowsHelper(client, request, 3, ImmutableList.of(batch1, batch2))
+                new MockBigQueryReadRows(client, request, 3, ImmutableList.of(batch1, batch2))
                         .readRows());
 
         assertThat(responses.size()).isEqualTo(2);
@@ -78,12 +78,12 @@ public class TestReadRowsHelper
                         Stream.newBuilder().setName("test")));
     }
 
-    private static final class MockReadRowsHelper
-            extends ReadRowsHelper
+    private static final class MockBigQueryReadRows
+            extends BigQueryReadRows
     {
         Iterator<MockResponsesBatch> responses;
 
-        MockReadRowsHelper(BigQueryStorageClient client, ReadRowsRequest.Builder request, int maxReadRowsRetries, Iterable<MockResponsesBatch> responses)
+        MockBigQueryReadRows(BigQueryStorageClient client, ReadRowsRequest.Builder request, int maxReadRowsRetries, Iterable<MockResponsesBatch> responses)
         {
             super(client, request, maxReadRowsRetries);
             this.responses = responses.iterator();

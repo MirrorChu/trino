@@ -22,7 +22,7 @@ import static io.trino.plugin.raptor.legacy.RaptorQueryRunner.createRaptorQueryR
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestRaptorBucketedConnectorTest
-        extends TestRaptorConnectorTest
+        extends TestMyRaptorConnectorTest
 {
     @Override
     protected QueryRunner createQueryRunner()

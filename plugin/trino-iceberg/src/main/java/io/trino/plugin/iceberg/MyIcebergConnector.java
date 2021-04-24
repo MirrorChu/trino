@@ -44,7 +44,7 @@ import static io.trino.spi.transaction.IsolationLevel.SERIALIZABLE;
 import static io.trino.spi.transaction.IsolationLevel.checkConnectorSupports;
 import static java.util.Objects.requireNonNull;
 
-public class IcebergConnector
+public class MyIcebergConnector
         implements Connector
 {
     private final LifeCycleManager lifeCycleManager;
@@ -61,7 +61,7 @@ public class IcebergConnector
     private final ConnectorAccessControl accessControl;
     private final Set<Procedure> procedures;
 
-    public IcebergConnector(
+    public MyIcebergConnector(
             LifeCycleManager lifeCycleManager,
             IcebergTransactionManager transactionManager,
             IcebergMetadataFactory metadataFactory,
@@ -197,15 +197,6 @@ public class IcebergConnector
     public void commit(ConnectorTransactionHandle transaction)
     {
         transactionManager.remove(transaction);
-    }
-
-    @Override
-    public void rollback(ConnectorTransactionHandle transaction)
-    {
-        IcebergMetadata metadata = transactionManager.remove(transaction);
-        try (ThreadContextClassLoader ignored = new ThreadContextClassLoader(getClass().getClassLoader())) {
-            metadata.rollback();
-        }
     }
 
     @Override

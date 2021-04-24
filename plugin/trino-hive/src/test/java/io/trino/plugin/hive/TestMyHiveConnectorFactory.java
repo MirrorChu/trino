@@ -28,7 +28,7 @@ import static io.airlift.testing.Assertions.assertInstanceOf;
 import static io.trino.spi.transaction.IsolationLevel.READ_UNCOMMITTED;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class TestHiveConnectorFactory
+public class TestMyHiveConnectorFactory
 {
     @Test
     public void testGetClient()

@@ -100,7 +100,7 @@ public class BigQueryResultPageSource
                 .setReadPosition(Storage.StreamPosition.newBuilder()
                         .setStream(Storage.Stream.newBuilder()
                                 .setName(split.getStreamName())));
-        responses = new ReadRowsHelper(bigQueryStorageClient, readRowsRequest, maxReadRowsRetries).readRows();
+        responses = new BigQueryReadRows(bigQueryStorageClient, readRowsRequest, maxReadRowsRetries).readRows();
     }
 
     @Override
