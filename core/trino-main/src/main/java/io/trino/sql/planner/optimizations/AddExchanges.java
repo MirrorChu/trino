@@ -52,6 +52,7 @@ import io.trino.sql.planner.plan.JoinNode;
 import io.trino.sql.planner.plan.LimitNode;
 import io.trino.sql.planner.plan.MarkDistinctNode;
 import io.trino.sql.planner.plan.OutputNode;
+import io.trino.sql.planner.plan.PatternRecognitionNode;
 import io.trino.sql.planner.plan.PlanNode;
 import io.trino.sql.planner.plan.PlanVisitor;
 import io.trino.sql.planner.plan.ProjectNode;
@@ -107,7 +108,6 @@ import static io.trino.sql.planner.plan.ExchangeNode.mergingExchange;
 import static io.trino.sql.planner.plan.ExchangeNode.partitionedExchange;
 import static io.trino.sql.planner.plan.ExchangeNode.replicatedExchange;
 import static io.trino.sql.planner.plan.ExchangeNode.roundRobinExchange;
-import static io.trino.sql.tree.BooleanLiteral.TRUE_LITERAL;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
@@ -287,6 +287,38 @@ public class AddExchanges
 
         @Override
         public PlanWithProperties visitWindow(WindowNode node, PreferredProperties preferredProperties)
+        {
+            List<LocalProperty<Symbol>> desiredProperties = new ArrayList<>();
+            if (!node.getPartitionBy().isEmpty()) {
+                desiredProperties.add(new GroupingProperty<>(node.getPartitionBy()));
+            }
+            node.getOrderingScheme().ifPresent(orderingScheme -> desiredProperties.addAll(orderingScheme.toLocalProperties()));
+
+            PlanWithProperties child = planChild(
+                    node,
+                    computePreference(
+                            partitionedWithLocal(ImmutableSet.copyOf(node.getPartitionBy()), desiredProperties),
+                            preferredProperties));
+
+            if (!child.getProperties().isStreamPartitionedOn(node.getPartitionBy()) &&
+                    !child.getProperties().isNodePartitionedOn(node.getPartitionBy())) {
+                if (node.getPartitionBy().isEmpty()) {
+                    child = withDerivedProperties(
+                            gatheringExchange(idAllocator.getNextId(), REMOTE, child.getNode()),
+                            child.getProperties());
+                }
+                else {
+                    child = withDerivedProperties(
+                            partitionedExchange(idAllocator.getNextId(), REMOTE, child.getNode(), node.getPartitionBy(), node.getHashSymbol()),
+                            child.getProperties());
+                }
+            }
+
+            return rebaseAndDeriveProperties(node, child);
+        }
+
+        @Override
+        public PlanWithProperties visitPatternRecognition(PatternRecognitionNode node, PreferredProperties preferredProperties)
         {
             List<LocalProperty<Symbol>> desiredProperties = new ArrayList<>();
             if (!node.getPartitionBy().isEmpty()) {
@@ -501,10 +533,19 @@ public class AddExchanges
         public PlanWithProperties visitFilter(FilterNode node, PreferredProperties preferredProperties)
         {
             if (node.getSource() instanceof TableScanNode) {
-                Optional<PlanWithProperties> plan = planTableScan((TableScanNode) node.getSource(), node.getPredicate());
-
+                Optional<PlanNode> plan = PushPredicateIntoTableScan.pushFilterIntoTableScan(
+                        node,
+                        (TableScanNode) node.getSource(),
+                        true,
+                        session,
+                        types,
+                        idAllocator,
+                        metadata,
+                        typeOperators,
+                        typeAnalyzer,
+                        domainTranslator);
                 if (plan.isPresent()) {
-                    return plan.get();
+                    return new PlanWithProperties(plan.get(), derivePropertiesRecursively(plan.get()));
                 }
             }
 
@@ -514,8 +555,7 @@ public class AddExchanges
         @Override
         public PlanWithProperties visitTableScan(TableScanNode node, PreferredProperties preferredProperties)
         {
-            return planTableScan(node, TRUE_LITERAL)
-                    .orElseGet(() -> new PlanWithProperties(node, deriveProperties(node, ImmutableList.of())));
+            return new PlanWithProperties(node, deriveProperties(node, ImmutableList.of()));
         }
 
         @Override
@@ -543,12 +583,6 @@ public class AddExchanges
                         source.getProperties());
             }
             return rebaseAndDeriveProperties(node, source);
-        }
-
-        private Optional<PlanWithProperties> planTableScan(TableScanNode node, Expression predicate)
-        {
-            return PushPredicateIntoTableScan.pushFilterIntoTableScan(node, predicate, true, session, types, idAllocator, metadata, typeOperators, typeAnalyzer, domainTranslator)
-                    .map(plan -> new PlanWithProperties(plan, derivePropertiesRecursively(plan)));
         }
 
         @Override
