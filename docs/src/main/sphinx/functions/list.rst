@@ -71,12 +71,12 @@ B
 - :func:`bit_count`
 - :func:`bitwise_and`
 - :func:`bitwise_and_agg`
-- ``bitwise_left_shift``
+- :func:`bitwise_left_shift`
 - :func:`bitwise_not`
 - :func:`bitwise_or`
 - :func:`bitwise_or_agg`
-- ``bitwise_right_shift``
-- ``bitwise_right_shift_arithmetic``
+- :func:`bitwise_right_shift`
+- :func:`bitwise_right_shift_arithmetic`
 - :func:`bitwise_xor`
 - :func:`bool_and`
 - :func:`bool_or`
@@ -159,6 +159,7 @@ F
 - :func:`floor`
 - :func:`format`
 - ``format_datetime``
+- :func:`format_number`
 - :func:`from_base`
 - :func:`from_base64`
 - :func:`from_base64url`
@@ -199,7 +200,7 @@ H
 - :func:`hmac_sha256`
 - :func:`hmac_sha512`
 - :func:`hour`
-- ``human_readable_seconds``
+- :func:`human_readable_seconds`
 
 I
 -
@@ -275,7 +276,7 @@ M
 - :func:`map_filter`
 - :func:`map_from_entries`
 - :func:`map_keys`
-- ``map_union``
+- :func:`map_union`
 - :func:`map_values`
 - :func:`map_zip_with`
 - :func:`max`
@@ -378,6 +379,7 @@ S
 - :func:`skewness`
 - :func:`slice`
 - :ref:`SOME <quantified_comparison_predicates>`
+- :func:`soundex`
 - ``spatial_partitioning``
 - ``spatial_partitions``
 - :func:`split`
@@ -458,12 +460,12 @@ T
 
 - :func:`tan`
 - :func:`tanh`
-- ``tdigest_agg``
+- :func:`tdigest_agg`
 - :func:`timezone_hour`
 - :func:`timezone_minute`
 - :func:`to_base`
 - :func:`to_base64`
-- ``to_base64url``
+- :func:`to_base64url`
 - :func:`to_big_endian_32`
 - :func:`to_big_endian_64`
 - :func:`to_char`
@@ -500,7 +502,7 @@ U
 - :func:`url_extract_host`
 - :func:`url_extract_parameter`
 - :func:`url_extract_path`
-- ``url_extract_protocol``
+- :func:`url_extract_protocol`
 - :func:`url_extract_port`
 - :func:`url_extract_query`
 - :func:`uuid`

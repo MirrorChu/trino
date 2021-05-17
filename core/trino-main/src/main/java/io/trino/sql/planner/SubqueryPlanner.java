@@ -20,13 +20,19 @@ import com.google.common.graph.SuccessorsFunction;
 import com.google.common.graph.Traverser;
 import io.trino.Session;
 import io.trino.metadata.Metadata;
+import io.trino.spi.type.Type;
 import io.trino.sql.analyzer.Analysis;
+import io.trino.sql.analyzer.Field;
+import io.trino.sql.analyzer.RelationType;
 import io.trino.sql.analyzer.Scope;
+import io.trino.sql.analyzer.TypeSignatureTranslator;
 import io.trino.sql.planner.plan.ApplyNode;
 import io.trino.sql.planner.plan.Assignments;
 import io.trino.sql.planner.plan.CorrelatedJoinNode;
 import io.trino.sql.planner.plan.EnforceSingleRowNode;
+import io.trino.sql.planner.plan.PlanNode;
 import io.trino.sql.planner.plan.ProjectNode;
+import io.trino.sql.tree.Cast;
 import io.trino.sql.tree.ComparisonExpression;
 import io.trino.sql.tree.ExistsPredicate;
 import io.trino.sql.tree.Expression;
@@ -38,6 +44,7 @@ import io.trino.sql.tree.NotExpression;
 import io.trino.sql.tree.QuantifiedComparisonExpression;
 import io.trino.sql.tree.QuantifiedComparisonExpression.Quantifier;
 import io.trino.sql.tree.Query;
+import io.trino.sql.tree.Row;
 import io.trino.sql.tree.SubqueryExpression;
 import io.trino.type.TypeCoercion;
 
@@ -117,7 +124,7 @@ class SubqueryPlanner
         for (Cluster<InPredicate> cluster : cluster(builder.getScope(), selectSubqueries(builder, expression, subqueries.getInPredicatesSubqueries()))) {
             builder = planInPredicate(builder, cluster, subqueries);
         }
-        for (Cluster<SubqueryExpression> cluster : cluster(builder.getScope(), selectSubqueries(builder, expression, subqueries.getScalarSubqueries()))) {
+        for (Cluster<SubqueryExpression> cluster : cluster(builder.getScope(), selectSubqueries(builder, expression, subqueries.getSubqueries()))) {
             builder = planScalarSubquery(builder, cluster);
         }
         for (Cluster<ExistsPredicate> cluster : cluster(builder.getScope(), selectSubqueries(builder, expression, subqueries.getExistsSubqueries()))) {
@@ -240,18 +247,41 @@ class SubqueryPlanner
                 analysis,
                 lambdaDeclarationToSymbolMap);
 
-        subqueryPlan = subqueryPlan.withNewRoot(new EnforceSingleRowNode(idAllocator.getNextId(), subqueryPlan.getRoot()));
+        PlanNode root = new EnforceSingleRowNode(idAllocator.getNextId(), subqueryPlan.getRoot());
+
+        Type type = analysis.getType(scalarSubquery);
+        RelationType descriptor = relationPlan.getDescriptor();
+        List<Symbol> fieldMappings = relationPlan.getFieldMappings();
+        Symbol column;
+        if (descriptor.getVisibleFieldCount() > 1) {
+            column = symbolAllocator.newSymbol("row", type);
+
+            ImmutableList.Builder<Expression> fields = ImmutableList.builder();
+            for (int i = 0; i < descriptor.getAllFieldCount(); i++) {
+                Field field = descriptor.getFieldByIndex(i);
+                if (!field.isHidden()) {
+                    fields.add(fieldMappings.get(i).toSymbolReference());
+                }
+            }
+
+            Expression expression = new Cast(new Row(fields.build()), TypeSignatureTranslator.toSqlType(type));
+
+            root = new ProjectNode(idAllocator.getNextId(), root, Assignments.of(column, expression));
+        }
+        else {
+            column = getOnlyElement(fieldMappings);
+        }
 
         return appendCorrelatedJoin(
                 subPlan,
-                subqueryPlan,
+                root,
                 scalarSubquery.getQuery(),
                 CorrelatedJoinNode.Type.INNER,
                 TRUE_LITERAL,
-                mapAll(cluster, subPlan.getScope(), getOnlyElement(relationPlan.getFieldMappings())));
+                mapAll(cluster, subPlan.getScope(), column));
     }
 
-    public PlanBuilder appendCorrelatedJoin(PlanBuilder subPlan, PlanBuilder subqueryPlan, Query query, CorrelatedJoinNode.Type type, Expression filterCondition, Map<ScopeAware<Expression>, Symbol> mappings)
+    public PlanBuilder appendCorrelatedJoin(PlanBuilder subPlan, PlanNode subquery, Query query, CorrelatedJoinNode.Type type, Expression filterCondition, Map<ScopeAware<Expression>, Symbol> mappings)
     {
         return new PlanBuilder(
                 subPlan.getTranslations()
@@ -259,7 +289,7 @@ class SubqueryPlanner
                 new CorrelatedJoinNode(
                         idAllocator.getNextId(),
                         subPlan.getRoot(),
-                        subqueryPlan.getRoot(),
+                        subquery,
                         subPlan.getRoot().getOutputSymbols(),
                         type,
                         filterCondition,
