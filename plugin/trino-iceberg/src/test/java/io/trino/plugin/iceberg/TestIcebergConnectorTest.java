@@ -60,6 +60,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
@@ -102,6 +103,7 @@ public abstract class TestIcebergConnectorTest
     {
         this.format = requireNonNull(format, "format is null");
     }
+
     @Override
     protected QueryRunner createQueryRunner()
             throws Exception
@@ -142,6 +144,7 @@ public abstract class TestIcebergConnectorTest
                         "\\s+location = '.*/iceberg_data/tpch'\n" +
                         "\\)");
     }
+
     @Override
     @Test
     // This particular method may or may not be @Flaky. It is annotated since the problem is generic.
@@ -162,6 +165,7 @@ public abstract class TestIcebergConnectorTest
         MaterializedResult actualColumns = computeActual("DESCRIBE orders");
         assertEquals(actualColumns, expectedColumns);
     }
+
     @Override
     @Test
     // This particular method may or may not be @Flaky. It is annotated since the problem is generic.
