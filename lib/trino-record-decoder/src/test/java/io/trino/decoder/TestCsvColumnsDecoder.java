@@ -15,12 +15,9 @@ package io.trino.decoder;
 
 import com.google.common.collect.ImmutableSet;
 import io.trino.decoder.csv.CsvRowDecoderFactory;
-import io.trino.spi.TrinoException;
 import io.trino.spi.type.BigintType;
 import io.trino.spi.type.BooleanType;
 import io.trino.spi.type.DoubleType;
-import io.trino.spi.type.Type;
-import org.assertj.core.api.ThrowableAssert;
 import org.testng.annotations.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -31,12 +28,11 @@ import static io.trino.decoder.util.DecoderTestUtil.checkIsNull;
 import static io.trino.decoder.util.DecoderTestUtil.checkValue;
 import static io.trino.spi.type.VarcharType.createVarcharType;
 import static java.util.Collections.emptyMap;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.Assert.assertEquals;
 
 public class TestCsvColumnsDecoder
 {
-    private static final CsvRowDecoderFactory DECODER_FACTORY = new CsvRowDecoderFactory();
+    private static final CsvRowsDecoderFactory DECODER_FACTORY = new CsvRowsDecoderFactory();
 
     @Test
     public void testSimple()
@@ -122,39 +118,5 @@ public class TestCsvColumnsDecoder
         checkIsNull(decodedRow, row2);
         checkIsNull(decodedRow, row3);
         checkIsNull(decodedRow, row4);
-    }
-
-    private void assertUnsupportedColumnTypeException(ThrowableAssert.ThrowingCallable callable)
-    {
-        assertThatThrownBy(callable)
-                .isInstanceOf(TrinoException.class)
-                .hasMessageMatching("Unsupported column type .* for column .*");
-    }
-
-    private void singleColumnDecoder(Type columnType)
-    {
-        singleColumnDecoder(columnType, "0", null, null, false, false, false);
-    }
-
-    private void singleColumnDecoder(Type columnType, String mapping, String dataFormat, String formatHint, boolean keyDecoder, boolean hidden, boolean internal)
-    {
-        DECODER_FACTORY.create(emptyMap(), ImmutableSet.of(new DecoderTestColumnHandle(0, "column", columnType, mapping, dataFormat, formatHint, keyDecoder, hidden, internal)));
-    }
-
-    private FieldValueProvider fieldValueDecoderFor(BigintType type, String csv)
-    {
-        DecoderTestColumnHandle column = new DecoderTestColumnHandle(0, "column", type, "0", null, null, false, false, false);
-        Set<DecoderColumnHandle> columns = ImmutableSet.of(column);
-        RowDecoder rowDecoder = DECODER_FACTORY.create(emptyMap(), columns);
-        Map<DecoderColumnHandle, FieldValueProvider> decodedRow = rowDecoder.decodeRow(csv.getBytes(StandardCharsets.UTF_8))
-                .orElseThrow(AssertionError::new);
-        return decodedRow.get(column);
-    }
-
-    private void assertRuntimeDecodingFailure(ThrowableAssert.ThrowingCallable callable)
-    {
-        assertThatThrownBy(callable)
-                .isInstanceOf(TrinoException.class)
-                .hasMessageMatching("could not parse value .* as .* for column .*");
     }
 }

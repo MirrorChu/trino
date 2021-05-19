@@ -11,12 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.decoder.csv;
+package io.trino.decoder;
 
 import au.com.bytecode.opencsv.CSVParser;
-import io.trino.decoder.DecoderColumnHandle;
-import io.trino.decoder.FieldValueProvider;
-import io.trino.decoder.RowDecoder;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -30,24 +27,24 @@ import static java.util.function.Function.identity;
 /**
  * Decode row as CSV. This is an extremely primitive CSV decoder using {@link au.com.bytecode.opencsv.CSVParser]}.
  */
-public class CsvRowDecoder
+public class CsvRowsDecoder
         implements RowDecoder
 {
     public static final String NAME = "csv";
 
-    private final Map<DecoderColumnHandle, CsvColumnDecoder> columnDecoders;
+    private final Map<DecoderColumnHandle, CsvColumnsDecoder> columnDecoders;
     private final CSVParser parser = new CSVParser();
 
-    public CsvRowDecoder(Set<DecoderColumnHandle> columnHandles)
+    public CsvRowsDecoder(Set<DecoderColumnHandle> columnHandles)
     {
         requireNonNull(columnHandles, "columnHandles is null");
         columnDecoders = columnHandles.stream()
                 .collect(toImmutableMap(identity(), this::createColumnDecoder));
     }
 
-    private CsvColumnDecoder createColumnDecoder(DecoderColumnHandle columnHandle)
+    private CsvColumnsDecoder createColumnDecoder(DecoderColumnHandle columnHandle)
     {
-        return new CsvColumnDecoder(columnHandle);
+        return new CsvColumnsDecoder(columnHandle);
     }
 
     @Override
