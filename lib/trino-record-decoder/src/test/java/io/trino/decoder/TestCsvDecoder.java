@@ -14,7 +14,6 @@
 package io.trino.decoder;
 
 import com.google.common.collect.ImmutableSet;
-import io.trino.decoder.csv.CsvRowDecoderFactory;
 import io.trino.spi.type.BigintType;
 import io.trino.spi.type.BooleanType;
 import io.trino.spi.type.DoubleType;
@@ -30,7 +29,7 @@ import static io.trino.spi.type.VarcharType.createVarcharType;
 import static java.util.Collections.emptyMap;
 import static org.testng.Assert.assertEquals;
 
-public class TestCsvColumnsDecoder
+public class TestCsvDecoder
 {
     private static final CsvRowsDecoderFactory DECODER_FACTORY = new CsvRowsDecoderFactory();
 
