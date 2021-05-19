@@ -25,6 +25,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 import static com.google.common.base.Verify.verify;
+import static io.airlift.slice.SliceUtf8.countCodePoints;
 import static io.airlift.slice.SliceUtf8.getCodePointAt;
 import static io.airlift.slice.SliceUtf8.lengthOfCodePoint;
 import static io.airlift.slice.SliceUtf8.setCodePointAt;
@@ -83,6 +84,14 @@ public final class CharacterStringCasts
         return padSpaces(truncateToLength(slice, y.intValue()), y.intValue());
     }
 
+    /**
+     * cast a slice using saturatedFloorCast
+     * @param y the length of the required utf-8 string
+     * @param slice the slice of the origin string
+     * @return the slice after saturatedFloorCast operation
+     * @exception io.airlift.slice.InvalidCodePointException happen when the codePoint value is invalid
+     */
+    // CS304 Issue link: https://github.com/trinodb/trino/issues/7597
     @ScalarOperator(OperatorType.SATURATED_FLOOR_CAST)
     @SqlType("char(y)")
     @LiteralParameters({"x", "y"})
@@ -110,7 +119,17 @@ public final class CharacterStringCasts
             return Slices.allocate(toIntExact(y));
         }
 
-        codePoints.set(codePoints.size() - 1, codePoints.get(codePoints.size() - 1) - 1);
+        int lastCodePoint = codePoints.get(codePoints.size() - 1) - 1;
+        /*
+         * UTF-8 reserve codepoint from 0xD800 to 0xDFFF for encoding UTF-16
+         * If the lastCodePoint after -1 operation is in this range, it will lead to an InvalidCodePointException
+         * Since the codePoint is originally valid, so the only case will be 0XE00 - 1
+         * So we let it go through this range and become 0xD7FF
+         */
+        if (lastCodePoint == 0xDFFF) {
+            lastCodePoint = 0xD7FF;
+        }
+        codePoints.set(codePoints.size() - 1, lastCodePoint);
         int toAdd = toIntExact(y) - codePoints.size();
         for (int i = 0; i < toAdd; i++) {
             codePoints.add(Character.MAX_CODE_POINT);
@@ -118,6 +137,20 @@ public final class CharacterStringCasts
 
         verify(codePoints.getInt(codePoints.size() - 1) != ' '); // no trailing spaces to trim
 
+        return codePointsToSliceUtf8(codePoints);
+    }
+
+    @ScalarOperator(OperatorType.SATURATED_FLOOR_CAST)
+    @SqlType("varchar(y)")
+    @LiteralParameters({"x", "y"})
+    public static Slice varcharToVarcharSaturatedFloorCast(@LiteralParameter("y") long y, @SqlType("varchar(x)") Slice slice)
+    {
+        if (countCodePoints(slice) <= y) {
+            return slice;
+        }
+
+        IntList codePoints = toCodePoints(slice);
+        codePoints.size(toIntExact(y));
         return codePointsToSliceUtf8(codePoints);
     }
 
