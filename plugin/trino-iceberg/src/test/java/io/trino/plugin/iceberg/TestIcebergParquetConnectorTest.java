@@ -15,10 +15,10 @@ package io.trino.plugin.iceberg;
 
 import static org.apache.iceberg.FileFormat.PARQUET;
 
-public class TestIcebergParquetSmoke
+public class TestIcebergParquetConnectorTest
         extends TestThriftConnectorTest
 {
-    public TestIcebergParquetSmoke()
+    public TestIcebergParquetConnectorTest()
     {
         super(PARQUET);
     }
