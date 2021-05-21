@@ -15,6 +15,7 @@ package io.trino.plugin.raptor.legacy;
 
 import com.google.common.collect.ImmutableMap;
 import io.trino.plugin.tpch.TpchPlugin;
+import io.trino.testing.BaseConnectorTest;
 import io.trino.testing.DistributedQueryRunner;
 import io.trino.testing.QueryRunner;
 import io.trino.tpch.TpchTable;
@@ -30,8 +31,8 @@ import static io.trino.plugin.raptor.legacy.RaptorQueryRunner.createSession;
 import static java.lang.String.format;
 
 @Test
-public class TestRaptorIntegrationSmokeTestMySql
-        extends TestRaptorIntegrationSmokeTest
+public class TestRaptorMysqlConnectorTest
+        extends BaseConnectorTest
 {
     private MySQLContainer<?> mysqlContainer;
 

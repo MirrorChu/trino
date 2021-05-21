@@ -27,17 +27,17 @@ import static io.trino.spi.transaction.IsolationLevel.READ_COMMITTED;
 import static io.trino.spi.transaction.IsolationLevel.checkConnectorSupports;
 import static java.util.Objects.requireNonNull;
 
-public class BigQueryConnector
+public class MyBigQueryConnector
         implements Connector
 {
-    private static final Logger log = Logger.get(BigQueryConnector.class);
+    private static final Logger log = Logger.get(MyBigQueryConnector.class);
 
     private final BigQueryMetadata metadata;
     private final BigQuerySplitManager splitManager;
     private final BigQueryPageSourceProvider pageSourceProvider;
 
     @Inject
-    public BigQueryConnector(
+    public MyBigQueryConnector(
             BigQueryMetadata metadata,
             BigQuerySplitManager splitManager,
             BigQueryPageSourceProvider pageSourceProvider)

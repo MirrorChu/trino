@@ -23,13 +23,13 @@ import java.util.NoSuchElementException;
 
 import static java.util.Objects.requireNonNull;
 
-public class ReadRowsHelper
+public class BigQueryReadRows
 {
     private final BigQueryStorageClient client;
     private final ReadRowsRequest.Builder request;
     private final int maxReadRowsRetries;
 
-    public ReadRowsHelper(BigQueryStorageClient client, ReadRowsRequest.Builder request, int maxReadRowsRetries)
+    public BigQueryReadRows(BigQueryStorageClient client, ReadRowsRequest.Builder request, int maxReadRowsRetries)
     {
         this.client = requireNonNull(client, "client cannot be null");
         this.request = requireNonNull(request, "request cannot be null");
@@ -54,14 +54,14 @@ public class ReadRowsHelper
     private static class ReadRowsIterator
             implements Iterator<ReadRowsResponse>
     {
-        private final ReadRowsHelper helper;
+        private final BigQueryReadRows helper;
         private final Storage.StreamPosition.Builder readPosition;
         private Iterator<ReadRowsResponse> serverResponses;
         private long readRowsCount;
         private int retries;
 
         public ReadRowsIterator(
-                ReadRowsHelper helper,
+                BigQueryReadRows helper,
                 Storage.StreamPosition.Builder readPosition,
                 Iterator<ReadRowsResponse> serverResponses)
         {

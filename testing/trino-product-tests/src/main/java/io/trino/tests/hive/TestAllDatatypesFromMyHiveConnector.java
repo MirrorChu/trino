@@ -64,7 +64,7 @@ import static java.sql.JDBCType.TINYINT;
 import static java.sql.JDBCType.VARBINARY;
 import static java.sql.JDBCType.VARCHAR;
 
-public class TestAllDatatypesFromHiveConnector
+public class TestAllDatatypesFromMyHiveConnector
         extends HiveProductTest
 {
     public static final class TextRequirements

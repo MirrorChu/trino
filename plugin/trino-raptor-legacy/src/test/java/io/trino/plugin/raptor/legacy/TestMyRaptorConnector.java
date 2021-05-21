@@ -76,12 +76,12 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 @Test(singleThreaded = true)
-public class TestRaptorConnector
+public class TestMyRaptorConnector
 {
     private Handle dummyHandle;
     private MetadataDao metadataDao;
     private File dataDir;
-    private RaptorConnector connector;
+    private MyRaptorConnector connector;
 
     @BeforeMethod
     public void setup()
@@ -100,7 +100,7 @@ public class TestRaptorConnector
         ShardManager shardManager = createShardManager(dbi);
         StorageManager storageManager = createRaptorStorageManager(dbi, dataDir);
         StorageManagerConfig config = new StorageManagerConfig();
-        connector = new RaptorConnector(
+        connector = new MyRaptorConnector(
                 new LifeCycleManager(ImmutableList.of(), null),
                 new TestingNodeManager(),
                 new RaptorMetadataFactory(dbi, shardManager),
