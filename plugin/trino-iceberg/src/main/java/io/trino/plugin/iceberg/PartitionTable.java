@@ -275,6 +275,13 @@ public class PartitionTable
         return Partition.toMap(idToTypeMapping, idToMetricMap);
     }
 
+    /**
+     * convert Object value to the given type (trino type)
+     * @param value input value which need to be convert
+     * @param type the wanted trino type
+     * @return an Object converted from the input value
+     */
+    //CS304 Issue link: https://github.com/trinodb/trino/issues/7502
     public static Object convert(Object value, Type type)
     {
         if (value == null) {
@@ -287,8 +294,11 @@ public class PartitionTable
             // TODO the client sees the bytearray's tostring ouput instead of seeing actual bytes, needs to be fixed.
             return ((ByteBuffer) value).array();
         }
+        if (type instanceof Types.DateType) {
+            return Long.parseLong(value.toString());
+        }
         if (type instanceof Types.TimestampType) {
-            long epochMicros = (long) value;
+            long epochMicros = Long.parseLong(value.toString());
             if (((Types.TimestampType) type).shouldAdjustToUTC()) {
                 return timestampTzFromMicros(epochMicros, TimeZoneKey.UTC_KEY);
             }
