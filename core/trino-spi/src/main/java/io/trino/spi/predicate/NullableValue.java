@@ -16,6 +16,8 @@ package io.trino.spi.predicate;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.trino.spi.block.Block;
+import io.trino.spi.type.DateType;
+import io.trino.spi.type.LongTimestampWithTimeZone;
 import io.trino.spi.type.Type;
 
 import java.lang.invoke.MethodHandle;
@@ -32,18 +34,24 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 // TODO: When we move RowExpressions to the SPI, we should get rid of this. This is effectively a ConstantExpression.
-public final class NullableValue
-{
+public final class NullableValue {
     private final Type type;
     private final Object value;
     private final MethodHandle equalOperator;
     private final MethodHandle hashCodeOperator;
 
-    public NullableValue(Type type, Object value)
-    {
+    /**
+     * Create a not null value which has given value and type
+     * @param type  the trinoType of the give value
+     * @param value the value need to do type check
+     * @throws IllegalArgumentException happens when the provided value is not an instance of the given type's JavaType
+     */
+    public NullableValue(Type type, Object value) {
         requireNonNull(type, "type is null");
         if (value != null && !Primitives.wrap(type.getJavaType()).isInstance(value)) {
-            throw new IllegalArgumentException(format("Object '%s' does not match type %s", value, type.getJavaType()));
+            if (!(type instanceof DateType && value instanceof LongTimestampWithTimeZone)) {
+                throw new IllegalArgumentException(format("Object '%s' does not match type %s", value, type.getJavaType()));
+            }
         }
 
         this.type = type;
@@ -54,28 +62,24 @@ public final class NullableValue
                     .asType(MethodType.methodType(Boolean.class, Object.class, Object.class));
             this.hashCodeOperator = TUPLE_DOMAIN_TYPE_OPERATORS.getHashCodeOperator(type, simpleConvention(FAIL_ON_NULL, NEVER_NULL))
                     .asType(MethodType.methodType(long.class, Object.class));
-        }
-        else {
+        } else {
             this.equalOperator = null;
             this.hashCodeOperator = null;
         }
     }
 
-    public static NullableValue of(Type type, Object value)
-    {
+    public static NullableValue of(Type type, Object value) {
         requireNonNull(value, "value is null");
         return new NullableValue(type, value);
     }
 
-    public static NullableValue asNull(Type type)
-    {
+    public static NullableValue asNull(Type type) {
         return new NullableValue(type, null);
     }
 
     // Jackson deserialization only
     @JsonCreator
-    public static NullableValue fromSerializable(@JsonProperty("serializable") Serializable serializable)
-    {
+    public static NullableValue fromSerializable(@JsonProperty("serializable") Serializable serializable) {
         Type type = serializable.getType();
         Block block = serializable.getBlock();
         return new NullableValue(type, block == null ? null : Utils.blockToNativeValue(type, block));
@@ -83,34 +87,28 @@ public final class NullableValue
 
     // Jackson serialization only
     @JsonProperty
-    public Serializable getSerializable()
-    {
+    public Serializable getSerializable() {
         return new Serializable(type, value == null ? null : Utils.nativeValueToBlock(type, value));
     }
 
-    public Block asBlock()
-    {
+    public Block asBlock() {
         return Utils.nativeValueToBlock(type, value);
     }
 
-    public Type getType()
-    {
+    public Type getType() {
         return type;
     }
 
-    public boolean isNull()
-    {
+    public boolean isNull() {
         return value == null;
     }
 
-    public Object getValue()
-    {
+    public Object getValue() {
         return value;
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         long hash = Objects.hash(type);
         if (value != null) {
             hash = hash * 31 + valueHash();
@@ -118,19 +116,16 @@ public final class NullableValue
         return (int) hash;
     }
 
-    private long valueHash()
-    {
+    private long valueHash() {
         try {
             return (long) hashCodeOperator.invokeExact(value);
-        }
-        catch (Throwable throwable) {
+        } catch (Throwable throwable) {
             throw handleThrowable(throwable);
         }
     }
 
     @Override
-    public boolean equals(Object obj)
-    {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -143,19 +138,16 @@ public final class NullableValue
                 && (this.value == null || valueEquals(other.value));
     }
 
-    private boolean valueEquals(Object otherValue)
-    {
+    private boolean valueEquals(Object otherValue) {
         try {
             return ((Boolean) equalOperator.invokeExact(value, otherValue)) == Boolean.TRUE;
-        }
-        catch (Throwable throwable) {
+        } catch (Throwable throwable) {
             throw handleThrowable(throwable);
         }
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder sb = new StringBuilder("NullableValue{");
         sb.append("type=").append(type);
         sb.append(", value=").append(value);
@@ -163,29 +155,25 @@ public final class NullableValue
         return sb.toString();
     }
 
-    public static class Serializable
-    {
+    public static class Serializable {
         private final Type type;
         private final Block block;
 
         @JsonCreator
         public Serializable(
                 @JsonProperty("type") Type type,
-                @JsonProperty("block") Block block)
-        {
+                @JsonProperty("block") Block block) {
             this.type = requireNonNull(type, "type is null");
             this.block = block;
         }
 
         @JsonProperty
-        public Type getType()
-        {
+        public Type getType() {
             return type;
         }
 
         @JsonProperty
-        public Block getBlock()
-        {
+        public Block getBlock() {
             return block;
         }
     }

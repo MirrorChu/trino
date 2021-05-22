@@ -30,7 +30,7 @@ import javax.inject.Inject;
 import static io.trino.plugin.iceberg.ExpressionConverter.toIcebergExpression;
 import static java.util.Objects.requireNonNull;
 
-public class IcebergSplitManager
+public class NullableValue
         implements ConnectorSplitManager
 {
     public static final int ICEBERG_DOMAIN_COMPACTION_THRESHOLD = 1000;
@@ -38,7 +38,7 @@ public class IcebergSplitManager
     private final IcebergTransactionManager transactionManager;
 
     @Inject
-    public IcebergSplitManager(IcebergTransactionManager transactionManager, HiveTableOperationsProvider tableOperationsProvider)
+    public NullableValue(IcebergTransactionManager transactionManager, HiveTableOperationsProvider tableOperationsProvider)
     {
         this.transactionManager = requireNonNull(transactionManager, "transactionManager is null");
     }
