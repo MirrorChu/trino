@@ -44,7 +44,7 @@ import static io.trino.spi.transaction.IsolationLevel.READ_UNCOMMITTED;
 import static io.trino.spi.transaction.IsolationLevel.checkConnectorSupports;
 import static java.util.Objects.requireNonNull;
 
-public class HiveConnector
+public class MyHiveConnector
         implements Connector
 {
     private final LifeCycleManager lifeCycleManager;
@@ -67,7 +67,7 @@ public class HiveConnector
 
     private final HiveTransactionManager transactionManager;
 
-    public HiveConnector(
+    public MyHiveConnector(
             LifeCycleManager lifeCycleManager,
             TransactionalMetadataFactory metadataFactory,
             HiveTransactionManager transactionManager,

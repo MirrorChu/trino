@@ -90,6 +90,6 @@ public class RaptorConnectorFactory
                 .setRequiredConfigurationProperties(config)
                 .initialize();
 
-        return injector.getInstance(RaptorConnector.class);
+        return injector.getInstance(MyRaptorConnector.class);
     }
 }
