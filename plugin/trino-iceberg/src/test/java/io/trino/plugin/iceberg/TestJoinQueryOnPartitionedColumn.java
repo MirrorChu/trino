@@ -91,18 +91,19 @@ public class TestJoinQueryOnPartitionedColumn
     /**
      * Test joined query on table with timestamps including cast
      */
+    //CS304 Issue link: https://github.com/trinodb/trino/issues/7502
     @Test
-    //CS304 Issue link: https://github.com/trinodb/trino/issues/1610
-    public void testPartitionTable1()
+    public void testPartitionTable()
     {
-        assertQuery("SELECT count(*) FROM test_schema.test_table join test_schema.test_table_2 on test_schema.test_table.a = test_schema.test_table_2.foo", "VALUES 0");
+        assertQuery("SELECT count(*) FROM test_schema.test_table where test_schema.test_table.a = 0", "VALUES 1");
     }
+
     /**
-	 * Test simple query on table with timestamps including cast
+     * Test simple query on table with timestamps including cast
      */
+    //CS304 Issue link: https://github.com/trinodb/trino/issues/7502
     @Test
-    //CS304 Issue link: https://github.com/trinodb/trino/issues/1610
-    public void testPartitionTable2()
+    public void testSingleQuery()
     {
         assertQuery("SELECT count(*) FROM test_schema.test_table where test_schema.test_table.a = 0", "VALUES 1");
     }
